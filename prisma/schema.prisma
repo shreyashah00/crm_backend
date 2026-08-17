@@ -1,0 +1,107 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  SALES
+}
+
+enum Priority {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum LeadStatus {
+  NEW_LEAD
+  IN_PROGRESS
+  LIKELY_WARM
+  CONVERTED
+  NOT_INTERESTED
+  ON_HOLD
+}
+
+enum ActivityType {
+  CALL
+  EMAIL
+  PHYSICAL_MEETING
+  ONLINE_MEETING
+  WHATSAPP_SMS
+  NOTE
+}
+
+model User {
+  id          Int        @id @default(autoincrement())
+  name        String
+  email       String     @unique
+  password    String
+  role        Role       @default(SALES)
+  active      Boolean    @default(true)
+  designation String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  leads       Lead[]     @relation("AssignedLeads")
+  activities  Activity[] @relation("CreatedActivities")
+  target      Target?
+}
+
+model Lead {
+  id               Int        @id @default(autoincrement())
+  organizationName String
+  contactName      String?
+  designation      String?
+  phone            String?
+  email            String?
+  province         String?
+  district         String?
+  source           String?
+  leadType         String?
+  dateAdded        DateTime   @default(now())
+  priority         Priority   @default(MEDIUM)
+  status           LeadStatus @default(NEW_LEAD)
+  nextActionDate   DateTime?
+  notes            String?
+  assignedToId     Int?
+  assignedTo       User?      @relation("AssignedLeads", fields: [assignedToId], references: [id], onDelete: SetNull)
+  activities       Activity[]
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  @@index([status])
+  @@index([assignedToId])
+}
+
+model Activity {
+  id          Int          @id @default(autoincrement())
+  type        ActivityType
+  occurredAt  DateTime     @default(now())
+  remarks     String?
+  leadId      Int
+  lead        Lead         @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  createdById Int
+  createdBy   User         @relation("CreatedActivities", fields: [createdById], references: [id], onDelete: Cascade)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([leadId])
+  @@index([createdById])
+}
+
+model Target {
+  id               Int      @id @default(autoincrement())
+  staffId          Int      @unique
+  staff            User     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  leadTarget       Int      @default(0)
+  followUpTarget   Int      @default(0)
+  meetingTarget    Int      @default(0)
+  conversionTarget Int      @default(0)
+  revenueTarget    Int      @default(0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
