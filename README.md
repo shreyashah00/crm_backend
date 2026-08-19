@@ -90,7 +90,7 @@ Fill out the variables in `.env`:
 DATABASE_URL="postgresql://username:password@localhost:5432/smart_crm_mulyaankan?schema=public"
 JWT_SECRET="smart-crm-mulyankan-super-secret-access-token-key-2026"
 JWT_REFRESH_SECRET="smart-crm-mulyankan-super-secret-refresh-token-key-2026"
-PORT=5000
+PORT=5001
 FRONTEND_URL="https://crm-frontend-cz1a.vercel.app"
 ```
 
@@ -130,9 +130,9 @@ npm run dev
 npm run start
 ```
 
-The server listens on port `5000` by default. You can access:
-*   API Status Overview: `http://localhost:5000/`
-*   Swagger Documentation: `http://localhost:5000/api-docs`
+The server listens on port `5001` by default. You can access:
+*   API Status Overview: `http://localhost:5001/`
+*   Swagger Documentation: `http://localhost:5001/api-docs`
 
 ---
 
@@ -269,7 +269,7 @@ Change the local storage demo interception so that it directs requests to your b
 
 ```javascript
 // Example frontend lib/api.js replacement
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001';
 
 export async function request(path, options = {}) {
   // Check if token exists in localStorage
