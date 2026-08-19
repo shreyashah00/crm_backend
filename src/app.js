@@ -25,23 +25,29 @@ app.use(helmet({
   contentSecurityPolicy: false, // Disable CSP in development for Swagger UI simplicity
 }));
 
-// 2. CORS configuration (allowing Vercel and local UI addresses)
-const allowedOrigins = [
-  process.env.FRONTEND_URL || 'https://crm-frontend-cz1a.vercel.app',
+// 2. CORS configuration (allowing Vercel, Render, and local UI addresses)
+const defaultAllowedOrigins = [
   'http://localhost:3000',
   'http://localhost:3001',
   'http://localhost:5001',
   'http://localhost:5173',
   'http://localhost:5174',
+  'https://crm-frontend-cz1a.vercel.app',
 ];
+
+const envOrigins = process.env.FRONTEND_URL
+  ? process.env.FRONTEND_URL.split(',').map(url => url.trim())
+  : [];
+
+const allowedOrigins = Array.from(new Set([...defaultAllowedOrigins, ...envOrigins]));
 
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like Postman or server-to-server)
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (!origin || allowedOrigins.includes(origin) || allowedOrigins.includes('*')) {
       callback(null, true);
     } else {
-      callback(new Error('Blocked by CORS policy'));
+      callback(new Error(`Blocked by CORS policy: ${origin}`));
     }
   },
   credentials: true,

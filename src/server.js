@@ -4,13 +4,14 @@ require('dotenv').config();
 const app = require('./app');
 const { pool, prisma } = require('./lib/prisma');
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
+const HOST = '0.0.0.0';
 
 // Start server
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, HOST, () => {
   console.log(`=============================================`);
   console.log(`🚀 Smart CRM Mulyaankan Server is running!`);
-  console.log(`📡 Listening on port: ${PORT}`);
+  console.log(`📡 Listening on host ${HOST} port: ${PORT}`);
   console.log(`📖 Swagger API Docs: http://localhost:${PORT}/api-docs`);
   console.log(`💻 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`=============================================`);
