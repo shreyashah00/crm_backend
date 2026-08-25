@@ -119,7 +119,68 @@ async function createActivity(data, user) {
   };
 }
 
+/**
+ * Updates an activity log
+ */
+async function updateActivity(id, data, user) {
+  const activity = await prisma.activity.findUnique({
+    where: { id },
+  });
+
+  if (!activity) {
+    throw ApiError.notFound('Activity not found');
+  }
+
+  if (user.role === 'SALES' && activity.createdById !== user.id) {
+    throw ApiError.forbidden('You can only edit activity logs created by you');
+  }
+
+  const updateData = {};
+  if (data.type) updateData.type = data.type;
+  if (data.remarks !== undefined) updateData.remarks = data.remarks;
+  if (data.occurredAt) updateData.occurredAt = new Date(data.occurredAt);
+
+  const updated = await prisma.activity.update({
+    where: { id },
+    data: updateData,
+    include: { createdBy: true, lead: true },
+  });
+
+  return {
+    id: updated.id,
+    type: updated.type,
+    occurredAt: formatDateString(updated.occurredAt),
+    remarks: updated.remarks,
+    leadId: updated.leadId,
+  };
+}
+
+/**
+ * Deletes an activity log
+ */
+async function deleteActivity(id, user) {
+  const activity = await prisma.activity.findUnique({
+    where: { id },
+  });
+
+  if (!activity) {
+    throw ApiError.notFound('Activity not found');
+  }
+
+  if (user.role === 'SALES' && activity.createdById !== user.id) {
+    throw ApiError.forbidden('You can only delete activity logs created by you');
+  }
+
+  await prisma.activity.delete({
+    where: { id },
+  });
+
+  return { success: true, message: 'Activity log deleted successfully' };
+}
+
 module.exports = {
   getActivities,
   createActivity,
+  updateActivity,
+  deleteActivity,
 };

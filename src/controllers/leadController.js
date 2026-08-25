@@ -46,10 +46,17 @@ const createLeadActivity = catchAsync(async (req, res) => {
   return res.status(201).json(updatedLead); // Frontend expects raw lead payload directly
 });
 
+const deleteLead = catchAsync(async (req, res) => {
+  const leadId = parseInt(req.params.id);
+  const result = await leadService.deleteLead(leadId, req.user);
+  return res.status(200).json(result);
+});
+
 module.exports = {
   getLeads,
   getLeadById,
   createLead,
   updateLead,
+  deleteLead,
   createLeadActivity,
 };

@@ -13,6 +13,7 @@ router.get('/', leadController.getLeads);
 router.post('/', validate(createLeadSchema), leadController.createLead);
 router.get('/:id', leadController.getLeadById);
 router.put('/:id', validate(updateLeadSchema), leadController.updateLead);
+router.delete('/:id', leadController.deleteLead);
 router.post('/:id/activities', validate(createActivitySchema), leadController.createLeadActivity);
 
 module.exports = router;

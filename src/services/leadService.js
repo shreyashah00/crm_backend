@@ -266,11 +266,36 @@ async function createLeadActivity(leadId, data, user) {
   return mapLeadToFrontend(updatedLead);
 }
 
+/**
+ * Deletes a lead by ID
+ */
+async function deleteLead(id, user) {
+  const lead = await prisma.lead.findUnique({
+    where: { id },
+  });
+
+  if (!lead) {
+    throw ApiError.notFound('Lead not found');
+  }
+
+  if (user.role === 'SALES' && lead.assignedToId !== user.id) {
+    throw ApiError.forbidden('You can only delete leads assigned to you');
+  }
+
+  await prisma.lead.delete({
+    where: { id },
+  });
+
+  return { success: true, message: 'Lead deleted successfully' };
+}
+
 module.exports = {
   getLeads,
   getLeadById,
   createLead,
   updateLead,
+  deleteLead,
   createLeadActivity,
+  mapLeadToFrontend,
   formatDateString,
 };

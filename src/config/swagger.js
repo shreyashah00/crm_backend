@@ -496,6 +496,116 @@ const swaggerDocument = {
         }
       }
     },
+    '/my-work': {
+      get: {
+        summary: 'Get Logged In User Workspace Overview',
+        tags: ['Staff Performance'],
+        security: [{ BearerAuth: [] }],
+        responses: {
+          200: { description: 'Returns due/overdue items and performance score for logged-in user' }
+        }
+      }
+    },
+    '/leaderboard': {
+      get: {
+        summary: 'Get Team Leaderboard Rankings',
+        tags: ['Staff Performance'],
+        security: [{ BearerAuth: [] }],
+        responses: {
+          200: { description: 'Ranked list of sales staff members by monthly performance score' }
+        }
+      }
+    },
+    '/calendar': {
+      get: {
+        summary: 'Get Follow-up & Activity Calendar Events',
+        tags: ['Calendar'],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'startDate', in: 'query', schema: { type: 'string', format: 'date' }, example: '2026-08-01' },
+          { name: 'endDate', in: 'query', schema: { type: 'string', format: 'date' }, example: '2026-08-31' },
+          { name: 'staffId', in: 'query', schema: { type: 'integer' } }
+        ],
+        responses: {
+          200: { description: 'List of calendar events across specified date range' }
+        }
+      }
+    },
+    '/pipeline': {
+      get: {
+        summary: 'Get Leads Grouped by Pipeline Stage',
+        tags: ['Pipeline'],
+        security: [{ BearerAuth: [] }],
+        responses: {
+          200: { description: 'Object containing leads arrays for NEW_LEAD, IN_PROGRESS, LIKELY_WARM, ON_HOLD, CONVERTED, NOT_INTERESTED' }
+        }
+      }
+    },
+    '/pipeline/{id}/status': {
+      put: {
+        summary: 'Update Lead Pipeline Stage',
+        tags: ['Pipeline'],
+        security: [{ BearerAuth: [] }],
+        parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['status'],
+                properties: {
+                  status: { type: 'string', enum: ['NEW_LEAD', 'IN_PROGRESS', 'LIKELY_WARM', 'ON_HOLD', 'CONVERTED', 'NOT_INTERESTED'] }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: { description: 'Pipeline stage updated successfully' }
+        }
+      }
+    },
+    '/activities': {
+      get: {
+        summary: 'Query Logged Activities',
+        tags: ['Activities'],
+        security: [{ BearerAuth: [] }],
+        parameters: [
+          { name: 'leadId', in: 'query', schema: { type: 'integer' } },
+          { name: 'staffId', in: 'query', schema: { type: 'integer' } },
+          { name: 'type', in: 'query', schema: { type: 'string' } }
+        ],
+        responses: {
+          200: { description: 'Paginated list of activity log records' }
+        }
+      },
+      post: {
+        summary: 'Log Standalone Activity',
+        tags: ['Activities'],
+        security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['leadId', 'type'],
+                properties: {
+                  leadId: { type: 'integer' },
+                  type: { type: 'string', enum: ['CALL', 'EMAIL', 'PHYSICAL_MEETING', 'ONLINE_MEETING', 'WHATSAPP_SMS', 'NOTE'] },
+                  remarks: { type: 'string' },
+                  occurredAt: { type: 'string', format: 'date' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          201: { description: 'Activity logged successfully' }
+        }
+      }
+    },
     '/dashboard': {
       get: {
         summary: 'Get Scoped Dashboard overview metrics',
