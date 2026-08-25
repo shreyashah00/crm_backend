@@ -1,3 +1,4 @@
+require('dotenv').config();
 const { PrismaClient } = require('@prisma/client');
 const { PrismaPg } = require('@prisma/adapter-pg');
 const { Pool } = require('pg');
@@ -5,9 +6,15 @@ const bcrypt = require('bcrypt');
 const fs = require('fs');
 const path = require('path');
 
+const connectionString = process.env.DATABASE_URL;
+const needsSsl = Boolean(
+  connectionString && (connectionString.includes('sslmode=require') || connectionString.includes('ssl=true') || process.env.NODE_ENV === 'production')
+);
+
 // Initialize Prisma 7 adapter
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
+  connectionString,
+  ...(needsSsl ? { ssl: { rejectUnauthorized: false } } : {}),
 });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });

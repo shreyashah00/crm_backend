@@ -137,8 +137,26 @@ async function changePassword(userId, { oldPassword, newPassword }) {
   return { success: true };
 }
 
+/**
+ * Registers a new user account and returns tokens and profile
+ */
+async function register(data) {
+  const userService = require('./userService');
+  const user = await userService.createUser(data);
+
+  const token = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user);
+
+  return {
+    token,
+    refreshToken,
+    user,
+  };
+}
+
 module.exports = {
   login,
+  register,
   refreshAccessToken,
   changePassword,
 };

@@ -12,11 +12,9 @@ const loginSchema = z.object({
 const registerSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
   email: z.string().email('Invalid email address'),
-  role: z.enum(['ADMIN', 'MANAGER', 'SALES'], {
-    errorMap: () => ({ message: 'Role must be ADMIN, MANAGER, or SALES' }),
-  }),
+  role: z.enum(['ADMIN', 'MANAGER', 'SALES']).optional().default('SALES'),
   designation: z.string().optional().nullable(),
-  password: z.string().min(6, 'Password must be at least 6 characters').optional(), // Default password123 if not provided
+  password: z.string().min(6, 'Password must be at least 6 characters').optional().default('password123'),
 });
 
 const changePasswordSchema = z.object({

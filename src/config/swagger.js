@@ -71,6 +71,65 @@ const swaggerDocument = {
         }
       }
     },
+    '/auth/register': {
+      post: {
+        summary: 'Register New User / Session Entry',
+        description: 'Registers a new user account, creates default target metrics for non-admin accounts, and returns auth tokens.',
+        tags: ['Authentication'],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                required: ['name', 'email'],
+                properties: {
+                  name: { type: 'string', example: 'Binod Shrestha' },
+                  email: { type: 'string', format: 'email', example: 'binod.shrestha@alphabett.demo' },
+                  password: { type: 'string', example: 'password123' },
+                  role: { type: 'string', enum: ['ADMIN', 'MANAGER', 'SALES'], example: 'SALES' },
+                  designation: { type: 'string', example: 'Sales Executive' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          201: {
+            description: 'Registration successful',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: { type: 'string', example: 'User registered successfully' },
+                    data: {
+                      type: 'object',
+                      properties: {
+                        token: { type: 'string', example: 'eyJhbGciOiJIUzI1Ni...' },
+                        user: {
+                          type: 'object',
+                          properties: {
+                            id: { type: 'integer', example: 4 },
+                            name: { type: 'string', example: 'Binod Shrestha' },
+                            email: { type: 'string', example: 'binod.shrestha@alphabett.demo' },
+                            role: { type: 'string', example: 'SALES' },
+                            active: { type: 'boolean', example: true },
+                            designation: { type: 'string', example: 'Sales Executive' }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          400: { description: 'Validation error or email already in use' }
+        }
+      }
+    },
     '/auth/me': {
       get: {
         summary: 'Get Current Authenticated User Info',

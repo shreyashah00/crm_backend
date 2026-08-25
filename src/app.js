@@ -76,6 +76,8 @@ const authLimiter = rateLimit({
 
 app.use('/auth/login', authLimiter);
 app.use('/api/auth/login', authLimiter);
+app.use('/auth/register', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 // 5. Body Parsers & Cookie Parser
 app.use(express.json());
@@ -86,19 +88,26 @@ app.use(cookieParser());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Default health check endpoint
-app.get('/', (req, res) => {
+app.get(['/', '/health', '/api/health'], (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Welcome to the Smart CRM Mulyaankan API!',
     documentation: '/api-docs',
     status: 'Healthy',
     timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
   });
 });
 
 // 7. Mount Routers
 // We mount routes with BOTH root-level prefixes and standard /api prefixes
 // to ensure direct seamless integration with the frontend mock-request structures
+
+const calendarRouter = require('./routes/calendar');
+const pipelineRouter = require('./routes/pipeline');
+const activityRouter = require('./routes/activities');
+const staffController = require('./controllers/staffController');
+const { auth } = require('./middleware/auth');
 
 // Auth Router
 app.use('/auth', authRouter);
@@ -123,6 +132,22 @@ app.use('/api/dashboard', dashboardRouter);
 // Notifications Router
 app.use('/notifications', notificationsRouter);
 app.use('/api/notifications', notificationsRouter);
+
+// Calendar Router
+app.use('/calendar', calendarRouter);
+app.use('/api/calendar', calendarRouter);
+
+// Pipeline Router
+app.use('/pipeline', pipelineRouter);
+app.use('/api/pipeline', pipelineRouter);
+
+// Activities Router
+app.use('/activities', activityRouter);
+app.use('/api/activities', activityRouter);
+
+// Alias Routes for Frontend Direct Endpoints
+app.get(['/my-work', '/api/my-work'], auth, staffController.getStaffWorkspace);
+app.get(['/leaderboard', '/api/leaderboard'], auth, staffController.getLeaderboard);
 
 // 8. 404 Route handler
 app.use((req, res, next) => {
