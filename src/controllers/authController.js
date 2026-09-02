@@ -95,8 +95,34 @@ const logout = catchAsync(async (req, res) => {
   );
 });
 
+const switchRole = catchAsync(async (req, res) => {
+  const { token, refreshToken, user } = await authService.switchRole(req.body);
+
+  res.cookie('access_token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: cookieSameSite,
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+  });
+
+  res.cookie('refresh_token', refreshToken, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: cookieSameSite,
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  });
+
+  return res.status(200).json(
+    success('Perspective switched successfully', {
+      token,
+      user,
+    })
+  );
+});
+
 module.exports = {
   login,
+  switchRole,
   register,
   refresh,
   getMe,

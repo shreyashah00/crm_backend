@@ -4,9 +4,18 @@ const loginSchema = z.object({
   email: z.string().email('Invalid email address').optional(),
   password: z.string().min(6, 'Password must be at least 6 characters').optional(),
   userId: z.number().int().positive().optional(), // For bypass/showcase role switching
-}).refine(data => (data.email && data.password) || data.userId, {
-  message: "Either email and password OR userId must be provided",
+  role: z.enum(['ADMIN', 'MANAGER', 'SALES']).optional(), // For showcase role switching by role
+}).refine(data => (data.email && data.password) || data.userId || data.role, {
+  message: "Either email and password OR userId OR role must be provided",
   path: ["email"]
+});
+
+const switchRoleSchema = z.object({
+  userId: z.number().int().positive().optional(),
+  role: z.enum(['ADMIN', 'MANAGER', 'SALES']).optional(),
+}).refine(data => data.userId || data.role, {
+  message: "Either userId or role must be provided to switch perspective",
+  path: ["role"]
 });
 
 const registerSchema = z.object({
@@ -24,6 +33,7 @@ const changePasswordSchema = z.object({
 
 module.exports = {
   loginSchema,
+  switchRoleSchema,
   registerSchema,
   changePasswordSchema,
 };

@@ -13,7 +13,7 @@ function runTest() {
     server.stdout.on('data', (data) => {
       const output = data.toString();
       console.log(`[Server stdout] ${output.trim()}`);
-      if (output.includes('Listening on port: 5999')) {
+      if (output.includes('port: 5999')) {
         // Server is ready, trigger tests
         triggerTests(server).then(resolve).catch(reject);
       }
@@ -41,24 +41,34 @@ async function triggerTests(serverProcess) {
     const healthData = await healthRes.json();
     console.log(`GET / status: ${healthRes.status}, success: ${healthData.success}`);
 
-    // 2. Test Showcase Login (Switch to Ramesh Chaudhary - ID: 3)
-    console.log('Testing POST /auth/login (Showcase login)...');
-    const loginRes = await fetch(`${baseUrl}/auth/login`, {
+    // 2. Test Showcase Login via role (Switch to MANAGER)
+    console.log('Testing POST /auth/login (Role-based login: MANAGER)...');
+    const roleLoginRes = await fetch(`${baseUrl}/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId: 3 })
+      body: JSON.stringify({ role: 'MANAGER' })
     });
-    const loginData = await loginRes.json();
-    console.log(`POST /auth/login status: ${loginRes.status}, user: ${loginData.data.user.name}`);
-    token = loginData.data.token;
+    const roleLoginData = await roleLoginRes.json();
+    console.log(`POST /auth/login by role status: ${roleLoginRes.status}, user: ${roleLoginData.data?.user?.name}, role: ${roleLoginData.data?.user?.role}`);
 
-    // 3. Test GET /auth/me (Protected Profile)
+    // 3. Test Perspective Switching endpoint: POST /auth/switch-role (Switch to Preeti - ID: 5)
+    console.log('Testing POST /auth/switch-role (Switch to Preeti Bachhar)...');
+    const switchRes = await fetch(`${baseUrl}/auth/switch-role`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: 5 })
+    });
+    const switchData = await switchRes.json();
+    console.log(`POST /auth/switch-role status: ${switchRes.status}, user: ${switchData.data?.user?.name}, role: ${switchData.data?.user?.role}`);
+    token = switchData.data.token;
+
+    // 4. Test GET /auth/me (Protected Profile)
     console.log('Testing GET /auth/me ...');
     const meRes = await fetch(`${baseUrl}/auth/me`, {
       headers: { 'Authorization': `Bearer ${token}` }
     });
     const meData = await meRes.json();
-    console.log(`GET /auth/me status: ${meRes.status}, role: ${meData.role}, designation: ${meData.designation}`);
+    console.log(`GET /auth/me status: ${meRes.status}, name: ${meData.name}, role: ${meData.role}, designation: ${meData.designation}`);
 
     // 4. Test GET /dashboard (Scoped Dashboard)
     console.log('Testing GET /dashboard ...');

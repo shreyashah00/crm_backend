@@ -31,7 +31,7 @@ function generateRefreshToken(user) {
 /**
  * Authenticates user and returns tokens & user profile
  */
-async function login({ email, password, userId }) {
+async function login({ email, password, userId, role }) {
   let user;
 
   // 1. Showcase role switching: login via userId directly (bypass password)
@@ -42,8 +42,17 @@ async function login({ email, password, userId }) {
     if (!user) {
       throw ApiError.notFound('User not found');
     }
+  } else if (role) {
+    // 2. Showcase role switching: login via role directly (pick active user with requested role)
+    user = await prisma.user.findFirst({
+      where: { role, active: true },
+      orderBy: { id: 'asc' },
+    });
+    if (!user) {
+      throw ApiError.notFound(`No active user found with role: ${role}`);
+    }
   } else {
-    // 2. Production login: login via email and password
+    // 3. Production login: login via email and password
     user = await prisma.user.findUnique({
       where: { email },
     });
@@ -154,8 +163,57 @@ async function register(data) {
   };
 }
 
+/**
+ * Switches active demo perspective by role or userId
+ */
+async function switchRole({ userId, role }) {
+  let user;
+
+  if (userId) {
+    user = await prisma.user.findUnique({
+      where: { id: userId },
+    });
+    if (!user) {
+      throw ApiError.notFound('User not found');
+    }
+  } else if (role) {
+    user = await prisma.user.findFirst({
+      where: { role, active: true },
+      orderBy: { id: 'asc' },
+    });
+    if (!user) {
+      throw ApiError.notFound(`No active user found with role: ${role}`);
+    }
+  } else {
+    throw ApiError.badRequest('Either userId or role must be provided');
+  }
+
+  if (!user.active) {
+    throw ApiError.forbidden('This user account has been deactivated');
+  }
+
+  const token = generateAccessToken(user);
+  const refreshToken = generateRefreshToken(user);
+
+  const userProfile = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    active: user.active,
+    designation: user.designation,
+  };
+
+  return {
+    token,
+    refreshToken,
+    user: userProfile,
+  };
+}
+
 module.exports = {
   login,
+  switchRole,
   register,
   refreshAccessToken,
   changePassword,

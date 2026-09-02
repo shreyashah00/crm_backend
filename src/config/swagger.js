@@ -18,7 +18,7 @@ const swaggerDocument = {
     '/auth/login': {
       post: {
         summary: 'Authenticate User / Session Entry',
-        description: 'Authenticates a user via email/password or bypasses validation via userId for showcase demonstration.',
+        description: 'Authenticates a user via email/password, or bypasses password validation via userId or role for showcase/demo perspective switching.',
         tags: ['Authentication'],
         requestBody: {
           required: true,
@@ -29,7 +29,8 @@ const swaggerDocument = {
                 properties: {
                   email: { type: 'string', format: 'email', example: 'admin@alphabett.com' },
                   password: { type: 'string', example: 'password123' },
-                  userId: { type: 'integer', description: 'Showcase bypass user ID', example: 3 }
+                  userId: { type: 'integer', description: 'Showcase bypass user ID', example: 3 },
+                  role: { type: 'string', enum: ['ADMIN', 'MANAGER', 'SALES'], description: 'Showcase bypass by role (logs in as active user with role)', example: 'SALES' }
                 }
               }
             }
@@ -68,6 +69,62 @@ const swaggerDocument = {
             }
           },
           401: { description: 'Invalid credentials or expired session' }
+        }
+      }
+    },
+    '/auth/switch-role': {
+      post: {
+        summary: 'Switch Active Perspective (Demo / Viewing As)',
+        description: 'Switches the active demonstration session perspective by role or userId without re-entering passwords. Returns newly signed JWT and updated user profile.',
+        tags: ['Authentication'],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  userId: { type: 'integer', description: 'Target user ID to switch to', example: 5 },
+                  role: { type: 'string', enum: ['ADMIN', 'MANAGER', 'SALES'], description: 'Target role to switch to', example: 'SALES' }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          200: {
+            description: 'Perspective switched successfully',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean', example: true },
+                    message: { type: 'string', example: 'Perspective switched successfully' },
+                    data: {
+                      type: 'object',
+                      properties: {
+                        token: { type: 'string', example: 'eyJhbGciOiJIUzI1Ni...' },
+                        user: {
+                          type: 'object',
+                          properties: {
+                            id: { type: 'integer', example: 5 },
+                            name: { type: 'string', example: 'Preeti Bachhar' },
+                            email: { type: 'string', example: 'preeti.bachhar@alphabett.demo' },
+                            role: { type: 'string', example: 'SALES' },
+                            active: { type: 'boolean', example: true },
+                            designation: { type: 'string', example: 'Sales Executive' }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          400: { description: 'Neither userId nor role was provided' },
+          404: { description: 'User or active role member not found' }
         }
       }
     },
